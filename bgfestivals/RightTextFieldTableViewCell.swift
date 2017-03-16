@@ -12,5 +12,10 @@ class RightTextFieldTableViewCell: UITableViewCell {
 
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var textField: UITextField!
-
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        self.textField.placeholder = Date().toString()
+    }
+    
 }

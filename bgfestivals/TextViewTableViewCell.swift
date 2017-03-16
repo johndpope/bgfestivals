@@ -11,5 +11,12 @@ import UIKit
 class TextViewTableViewCell: UITableViewCell {
 
     @IBOutlet weak var textView: UITextView!
-    
+    var placeholderText: String? = nil {
+        didSet {
+            if let placeholderText = placeholderText {
+                textView.text = placeholderText
+            }
+        }
+    }
+
 }

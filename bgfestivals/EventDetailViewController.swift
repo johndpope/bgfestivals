@@ -26,6 +26,7 @@ class EventDetailViewController: UIViewController {
     @IBOutlet weak var headerView: UIView!
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var textField: UITextField!
+    @IBOutlet weak var secondTextField: UITextField!
     @IBOutlet weak var headerViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var footerToolBar: UIToolbar!
     @IBOutlet weak var footerButton: UIBarButtonItem!
@@ -34,13 +35,13 @@ class EventDetailViewController: UIViewController {
     var editMode: Bool?
 
     fileprivate var datePickerIndexPath: IndexPath?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         if editMode == true {
             footerButton.title = "Create"
-            footerButton.tintColor = .darkGreen()
+            footerButton.tintColor = .mainApp()
         } else {
             footerButton.title = "Delete"
             footerButton.tintColor = .red
@@ -54,10 +55,43 @@ class EventDetailViewController: UIViewController {
         tableView.estimatedRowHeight = defaultCellHeight
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.tableHeaderView = headerView
+        
+        guard let event = currentEvent else {
+            return;
+        }
+        textField.text = event.title
+        secondTextField.text = event.location
     }
     
     // MARK: Actions
+    
     @IBAction func footerButtonPressed(_ sender: Any) {
+        
+    }
+    
+    @IBAction func shareButtonPressed(_ sender: Any) {
+    
+    }
+    
+    // MARK: Private actions
+    
+    func deleteEvent() {
+        
+    }
+    
+    func saveEvent() {
+        
+    }
+    
+    func shareEvent() {
+        
+    }
+    
+    func addEventToGoingList() {
+        
+    }
+    
+    func putRatingToEvent(rating: Double) {
         
     }
     
@@ -89,19 +123,29 @@ extension EventDetailViewController: UITableViewDelegate, UITableViewDataSource 
         case 0:
             let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: RightTextFieldTableViewCell.self)) as! RightTextFieldTableViewCell
             cell.titleLabel.text = "Start Date"
-            cell.textField.text = "01/09/2017 08:00:00"
+            if let event = currentEvent {
+                cell.textField.text = (event.startDate as! Date).toString()
+            }
             cell.textField.isUserInteractionEnabled = false
             return cell
             
         case 1:
             let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: RightTextFieldTableViewCell.self)) as! RightTextFieldTableViewCell
             cell.titleLabel.text = "End Date"
-            cell.textField.text = "01/09/2017 17:00:00"
+            if let event = currentEvent {
+                cell.textField.text = (event.endDate as! Date).toString()
+            }
             cell.textField.isUserInteractionEnabled = false
             return cell
         
         default:
             let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: TextViewTableViewCell.self)) as! TextViewTableViewCell
+            if let event = currentEvent {
+                cell.textView.text = event.eventDescription
+                cell.placeholderText = nil
+            } else {
+                cell.placeholderText = "Add description for your event here"
+            }
             cell.textView.delegate = self
             return cell
         }

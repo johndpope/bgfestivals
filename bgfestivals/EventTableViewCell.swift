@@ -13,16 +13,17 @@ class EventTableViewCell: UITableViewCell {
     @IBOutlet weak var eventImageView: UIImageView!
     @IBOutlet weak var eventTitleLabel: UILabel!
     @IBOutlet weak var eventDateLabel: UILabel!
-    @IBOutlet weak var eventDescriptionTextView: UITextView!
+    @IBOutlet weak var eventDescriptionLabel: UILabel!
     
-    override func awakeFromNib() {
-        super.awakeFromNib()
-
-    }
     
-    func configure(evnt: Event) {
-
-        
+    func configure(with event: Event?) {
+        guard let event = event else {
+            return
+        }
+        eventTitleLabel?.text = event.title
+        eventDateLabel?.text = (event.startDate as! Date).toString()
+        eventDescriptionLabel?.text = event.eventDescription
+        accessoryType = UITableViewCellAccessoryType.disclosureIndicator
     }
 
 }

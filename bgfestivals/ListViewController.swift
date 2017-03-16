@@ -12,15 +12,15 @@ let showEventSegueIdentifier = "ShowEventSegueIdentifier"
 
 enum ListFilterType: Int {
     case all
+    case going
     case mine
-    case attend
     
     func title() -> String {
         switch self {
+        case .going:
+            return "Going"
         case .mine:
             return "Mine Events"
-        case .attend:
-            return "Will Visit"
         default:
             return "All Events"
         }
@@ -32,6 +32,11 @@ class ListViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var segmentControl: UISegmentedControl!
     @IBOutlet weak var headerView: UIView!
+    
+    fileprivate var allEvents: [Event]? {
+        return DataManager.sharedInstance.allEvents()
+    }
+    fileprivate var selectedIndexPath: IndexPath?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,11 +51,15 @@ class ListViewController: UIViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == showEventSegueIdentifier {
-            if let destination = segue.destination as? EventDetailViewController {
+            if let destinationController = segue.destination as? EventDetailViewController {
                 if sender is UIBarButtonItem {
-                    destination.editMode = true
+                    destinationController.editMode = true
                 } else {
-                    destination.editMode = false
+                    destinationController.editMode = false
+                    if let allEvents = allEvents, let selectedIndex = selectedIndexPath?.row {
+                        let event = allEvents[selectedIndex]
+                        destinationController.currentEvent = event
+                    }
                 }
             }
         }
@@ -92,28 +101,31 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
         switch type {
+        case .going:
+            return 5
         case .mine:
             return 2
-        case .attend:
-            return 5
         default:
-            if let events = DataManager.sharedInstance.allEvents() {
-                return events.count
+            if let allEvents = allEvents {
+                return allEvents.count
             }
-            
+        
         }
         return 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: EventTableViewCell.self)) as! EventTableViewCell
-        cell.eventDateLabel?.text = "detail \(indexPath.row.description)"
+        let event = allEvents?[indexPath.row]
+        cell.configure(with: event)
+    
         cell.accessoryType = UITableViewCellAccessoryType.disclosureIndicator
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        selectedIndexPath = indexPath
         performSegue(withIdentifier: showEventSegueIdentifier, sender: nil)
     }
 }
