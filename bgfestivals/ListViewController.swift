@@ -34,7 +34,9 @@ class ListViewController: UIViewController {
     @IBOutlet weak var headerView: UIView!
     
     fileprivate var allEvents: [Event]? {
-        return DataManager.sharedInstance.allEvents()
+        return DataManager.sharedInstance.allEvents()?.sorted{
+                ($0.startDate as! Date).compare(($1.startDate as! Date)) == ComparisonResult.orderedAscending
+        }
     }
     fileprivate var selectedIndexPath: IndexPath?
     
@@ -43,6 +45,8 @@ class ListViewController: UIViewController {
         
         configureNavigation()
         configureTableView()
+        //todo
+        registerForPreviewing(with: self, sourceView: tableView)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -128,4 +132,30 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
         selectedIndexPath = indexPath
         performSegue(withIdentifier: showEventSegueIdentifier, sender: nil)
     }
+}
+
+extension ListViewController: UIViewControllerPreviewingDelegate {
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+        performSegue(withIdentifier: showEventSegueIdentifier, sender: nil)
+    }
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        guard let indexPath = tableView.indexPathForRow(at: location) else {
+            return nil
+        }
+        let eventDetail = storyboard?.instantiateViewController(withIdentifier: "EventDetailViewController") as! EventDetailViewController
+        if let allEvents = allEvents {
+            let event = allEvents[indexPath.row]
+            eventDetail.currentEvent = event
+        }
+        selectedIndexPath = indexPath
+        let cellRect = tableView.rectForRow(at: indexPath)
+        let sourceRect = previewingContext.sourceView.convert(cellRect, from: tableView)
+        previewingContext.sourceRect = sourceRect
+        
+        return eventDetail
+    }
+    
+    
 }

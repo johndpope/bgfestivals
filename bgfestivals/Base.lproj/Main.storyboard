@@ -73,7 +73,6 @@
                                                 </label>
                                                 <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="defaultFestivalImage" translatesAutoresizingMaskIntoConstraints="NO" id="bWX-6l-5i2">
                                                     <rect key="frame" x="8" y="8" width="93.5" height="93.5"/>
-                                                    <color key="backgroundColor" red="1" green="1" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="93.5" id="Wgg-wc-On8"/>
                                                         <constraint firstAttribute="width" constant="93.5" id="nVf-0S-dFE"/>
@@ -170,7 +169,7 @@
         <!--Festival-->
         <scene sceneID="5bV-ps-Srl">
             <objects>
-                <viewController automaticallyAdjustsScrollViewInsets="NO" id="kMQ-2e-oKS" customClass="EventDetailViewController" customModule="bgfestivals" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="EventDetailViewController" automaticallyAdjustsScrollViewInsets="NO" id="kMQ-2e-oKS" customClass="EventDetailViewController" customModule="bgfestivals" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="kyh-gv-OER"/>
                         <viewControllerLayoutGuide type="bottom" id="FNh-R7-eem"/>

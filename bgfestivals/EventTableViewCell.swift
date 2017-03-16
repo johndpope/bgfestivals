@@ -23,6 +23,9 @@ class EventTableViewCell: UITableViewCell {
         eventTitleLabel?.text = event.title
         eventDateLabel?.text = (event.startDate as! Date).toString()
         eventDescriptionLabel?.text = event.eventDescription
+        if let imageURLString = event.imageURL {
+            eventImageView.downloadedFrom(link: imageURLString)
+        }
         accessoryType = UITableViewCellAccessoryType.disclosureIndicator
     }
 

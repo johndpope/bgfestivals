@@ -46,9 +46,7 @@ class EventDetailViewController: UIViewController {
             footerButton.title = "Delete"
             footerButton.tintColor = .red
         }
-        self.title = "Festival"
         configureTableView()
-
     }
 
     func configureTableView() {
@@ -61,6 +59,9 @@ class EventDetailViewController: UIViewController {
         }
         textField.text = event.title
         secondTextField.text = event.location
+        if let imageURLString = event.imageURL {
+            imageView.downloadedFrom(link: imageURLString)
+        }
     }
     
     // MARK: Actions
@@ -72,6 +73,14 @@ class EventDetailViewController: UIViewController {
     @IBAction func shareButtonPressed(_ sender: Any) {
     
     }
+    
+    override var previewActionItems: [UIPreviewActionItem] {
+        let share = UIPreviewAction(title: "Share", style: .default) { (action, viewController) in
+            (viewController as! EventDetailViewController).shareEvent()
+        }
+        return [share]
+    }
+        
     
     // MARK: Private actions
     
@@ -104,8 +113,10 @@ extension EventDetailViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if ((section == EventDetailSection.startDate.rawValue || section == EventDetailSection.endDate.rawValue) &&
-            editMode! && (datePickerIndexPath != nil) && datePickerIndexPath?.section == section) {
+        if let datePickerIndexPath = datePickerIndexPath,
+            let editMode = editMode,
+            ((section == EventDetailSection.startDate.rawValue || section == EventDetailSection.endDate.rawValue) &&
+            editMode && datePickerIndexPath.section == section) {
             return 2
         }
         return 1

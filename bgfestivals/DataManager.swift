@@ -83,6 +83,7 @@ class DataManager: NSObject {
                     if let lastUpdateDate = dateFormatter.date(from: lastUpdateDateString),
                         Date().compare(lastUpdateDate) == ComparisonResult.orderedDescending {
                         for eventInfo in events {
+                            //TODO: Update if exist
                             if let new: Event = Event.createNew(context: viewContext) {
                                 if let eventID = eventInfo["id"] as? NSNumber,
                                     let title = eventInfo["title"] as? NSString,
