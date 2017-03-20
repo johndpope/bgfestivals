@@ -9,34 +9,35 @@
 import UIKit
 import CoreData
 
+let staticActionTypeKey = "com.bgfestivals.createevent"
+let dynamicActionTypeKey = "com.bgfestivals.event"
+let eventIDKey = "event_id"
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        
-        var performAdditionalHandler = true
-    
+        DataManager.sharedInstance.syncEvents()
+   
         if let shortcutItem = launchOptions?[UIApplicationLaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
-            // TODO:
-            performAdditionalHandler = false
+            let _ = handelSshortcutAction(shortcutItem: shortcutItem)
+        }
+        
+        //Add Dynamic Home Screen Quick Actions
+        if let topEvents = DataManager.sharedInstance.topThreeEvents {
+            for event in topEvents {
+                let icon = UIApplicationShortcutIcon(type: .date)
+                let shortcutItem = UIApplicationShortcutItem(type: dynamicActionTypeKey, localizedTitle: event.title!, localizedSubtitle: event.location, icon: icon, userInfo: [eventIDKey : event.id])
+                application.shortcutItems?.append(shortcutItem)
+            }
         }
         
         UINavigationBar.appearance().tintColor = UIColor.mainApp()
         UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName : UIColor.darkGray]
         
-        let a = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "0"])
-        let b = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "1"])
-        let c = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "2"])
-        let d = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "3"])
-        let e = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "4"])
-        let f = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "5"])
-        let g = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "6"])
-        let h = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "7"])
-
-        application.shortcutItems = [a, b, c, d, e, f, g, h]
-        return performAdditionalHandler
+        return false
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -60,18 +61,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        let didHandel = handelSshortcutAction(shortcutItem: shortcutItem)
+        completionHandler(didHandel)
+    }
+    
+    func handelSshortcutAction(shortcutItem: UIApplicationShortcutItem) -> Bool {
         var didHandel = false
-        
+
         if (shortcutItem.type == staticActionTypeKey) {
-            //TODO:
-            didHandel = true
+            if let eventDetailViewController = EventDetailViewController.detailViewController(event: nil),
+                let root = window?.rootViewController {
+                root.show(eventDetailViewController, sender: nil)
+                didHandel = true
+            }
+            didHandel = false
         }
         
         if (shortcutItem.type == dynamicActionTypeKey) {
-            //TODO:
+            if let userInfo = shortcutItem.userInfo,
+                let idString = userInfo[eventIDKey],
+                let event = DataManager.sharedInstance.event(withID: idString as? Int64),
+                let eventDetailViewController = EventDetailViewController.detailViewController(event: event),
+                let root = window?.rootViewController {
+                root.show(eventDetailViewController, sender: nil)
+                didHandel = true
+            }
             didHandel = true
         }
-        completionHandler(didHandel)
+        return didHandel
     }
 }
 

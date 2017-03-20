@@ -139,7 +139,6 @@ class EventDetailViewController: UIViewController {
     // MARK: Private methods
     
     fileprivate func configureTableView() {
-        
         tableView.estimatedRowHeight = defaultCellHeight
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.tableHeaderView = headerView

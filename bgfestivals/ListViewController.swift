@@ -7,20 +7,18 @@
 //
 
 import UIKit
+import CoreData
 
 let showEventSegueIdentifier = "ShowEventSegueIdentifier"
 
 enum ListFilterType: Int {
     case all
     case going
-//    case mine
     
     func title() -> String {
         switch self {
         case .going:
             return "Going"
-//        case .mine:
-//            return "Mine Events"
         default:
             return "All Events"
         }
@@ -33,13 +31,15 @@ class ListViewController: UIViewController {
     @IBOutlet weak var segmentControl: UISegmentedControl!
     @IBOutlet weak var headerView: UIView!
     
-    fileprivate var allEvents: [Event]? {
-        
-//        let sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(key: "startDate", ascending: true)]
-//        fetchedResultsController = Event.fetchedResultsControllerWithPredicate(predicate: nil, sortDescriptors: sortDescriptors, cacheName: "event", groupKey: "isSelected", context: self.operationsManager?.mainContext)
-        
-        return DataManager.sharedInstance.allEvents()?.sorted{
-            ($0.startDate as! Date).compare(($1.startDate as! Date)) == ComparisonResult.orderedAscending
+    fileprivate var eventsFetchedResultsController = DataManager.sharedInstance.eventsFetchedResultsController
+    fileprivate var currentEventList: [Event]? {
+        guard let allEvents = eventsFetchedResultsController?.fetchedObjects else {
+            return nil
+        }
+        if (segmentControl.selectedSegmentIndex == 1) {
+            return allEvents.filter{$0.isSelected}
+        } else {
+            return allEvents
         }
     }
     
@@ -48,6 +48,7 @@ class ListViewController: UIViewController {
         
         configureNavigation()
         configureTableView()
+        loadData()
         
         registerForPreviewing(with: self, sourceView: tableView)
     }
@@ -85,26 +86,30 @@ class ListViewController: UIViewController {
         tableView.tintColor = UIColor.mainApp()
     }
     
+    fileprivate func loadData() {
+        do {
+            try self.eventsFetchedResultsController?.performFetch()
+        } catch let error {
+            print("Fail to fecth events \(error).")
+        }
+    }
+    
 }
 
 extension ListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        guard let type = ListFilterType(rawValue: segmentControl.selectedSegmentIndex), let allEvents = allEvents else {
+        guard let allEvents = currentEventList else {
             return 0
         }
-        
-        if (type == .going) {
-            return 5
-        } else {
-            return allEvents.count
-        }
+    
+        return allEvents.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: EventTableViewCell.self)) as! EventTableViewCell
-        if let allEvents = allEvents {
+        if let allEvents = currentEventList {
             let event = allEvents[indexPath.row]
             cell.configure(with: event)
         }
@@ -114,7 +119,7 @@ extension ListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        if let allEvents = allEvents {
+        if let allEvents = currentEventList {
             let event = allEvents[indexPath.row]
             if let eventDetailViewController = EventDetailViewController.detailViewController(event: event) {
                 show(eventDetailViewController, sender: nil)
@@ -135,7 +140,7 @@ extension ListViewController: UIViewControllerPreviewingDelegate {
     
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
        
-        guard let indexPath = tableView.indexPathForRow(at: location), let allEvents = allEvents  else {
+        guard let indexPath = tableView.indexPathForRow(at: location), let allEvents = currentEventList  else {
             return nil
         }
 

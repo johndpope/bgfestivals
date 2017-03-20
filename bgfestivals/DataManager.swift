@@ -9,6 +9,153 @@
 import UIKit
 import CoreData
 
+
+class DataManager: NSObject {
+    
+    static let sharedInstance = DataManager()
+
+    lazy var viewContext: NSManagedObjectContext = {
+        return self.persistentContainer.viewContext
+    }()
+    
+    func syncEvents() {
+        let bundle = Bundle(for: type(of: self))
+        if let fileURL = bundle.url(forResource: "eventsList", withExtension: "json") {
+            do {
+                let data = try Data(contentsOf: fileURL)
+                if let parsedData = try? JSONSerialization.jsonObject(with: data) as! [String: AnyObject],
+                    
+                    let lastUpdateDateString = parsedData["lastUpdate"] as? String,
+                    let events = parsedData["events"] as? [[String: AnyObject]] {
+                    
+                    //If no data or ..
+                    if let lastUpdateDate = Date.dateFormatterWithTime().date(from: lastUpdateDateString),
+                        Date().compare(lastUpdateDate) == ComparisonResult.orderedDescending,
+                        DataManager.sharedInstance.topThreeEvents == nil {
+                        //Delete old events
+                        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Event")
+                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                        
+                        // Read new events from file
+                        do {
+                            try viewContext.persistentStoreCoordinator?.execute(deleteRequest, with: viewContext)
+                            _ = saveNewEvents(from: events)
+                        } catch let error as NSError {
+                            print(error)
+                        }
+                    }
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+
+    
+    var eventsFetchedResultsController: NSFetchedResultsController<Event>? {
+        let fetchRequest = NSFetchRequest<Event>(entityName: "Event")
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "startDate", ascending: true)]
+        fetchRequest.fetchBatchSize = 20;
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: DataManager.sharedInstance.viewContext, sectionNameKeyPath: "isSelected", cacheName: "events")
+        return fetchedResultsController
+    }
+    
+    var topThreeEvents: [Event]? {
+        guard let fetchedResultsController = DataManager.sharedInstance.eventsFetchedResultsController else {
+            return nil
+        }
+        do {
+            try fetchedResultsController.performFetch()
+            if let allEvents = fetchedResultsController.fetchedObjects {
+                let selected = (allEvents as [Event]).filter{$0.isSelected}
+                return Array(selected.prefix(min(selected.count, 3)))
+            } else {
+                return nil
+            }
+        } catch let error {
+            print("Fail to fecth events \(error).")
+            return nil
+        }
+    }
+    
+    func event(withID id: Int64?) -> Event? {
+        guard let id = id else {
+            return nil
+        }
+        
+        let fetchRequest = NSFetchRequest<Event>(entityName: "Event")
+        fetchRequest.predicate = NSPredicate(format: "id == \(id)")
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "startDate", ascending: true)]
+        fetchRequest.fetchBatchSize = 20;
+        do {
+            let fetchedObjects = try DataManager.sharedInstance.viewContext.fetch(fetchRequest)
+            return fetchedObjects.first
+        } catch let error {
+            print("Failed to fetch event with id: \(error)")
+            return nil
+        }
+     }
+    
+    // MARK: - Core Data stack
+    
+    lazy var persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "bgfestivals")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+
+        return container
+    }()
+
+    // MARK: - Core Data Saving support
+    
+    func saveContext() {
+        let context = persistentContainer.viewContext
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                let nserror = error as NSError
+                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+            }
+        }
+    }
+    
+    // MARK: Private
+    
+    fileprivate func saveNewEvents(from list: [[String: AnyObject]]) -> [Event] {
+        var results: [Event] = []
+
+        for eventInfo in list {
+            if let new: Event = Event.createNew(context: viewContext) {
+                if let eventID = eventInfo["id"] as? NSNumber,
+                    let title = eventInfo["title"] as? NSString,
+                    let startDate = eventInfo["startDate"] as? NSString {
+                    new.id = Int64(eventID)
+                    new.title = title as String
+                    new.startDate = Date().toDate(string: startDate as String) as NSDate?
+                    new.endDate = Date().toDate(string: eventInfo["endDate"] as! String) as NSDate?
+                    new.eventDescription = eventInfo["eventDescription"] as? String
+                    new.rating = (eventInfo["rating"] as? Double)!
+                    new.location = eventInfo["location"] as? String
+                    new.contactEmail = eventInfo["contactEmail"] as? String
+                    new.imageURL = eventInfo["imageURL"] as? String
+                    if let isSelectedValue = eventInfo["isSelected"] as? Bool {
+                        new.isSelected = isSelectedValue
+                    } else {
+                        new.isSelected = false
+                    }
+                    results.append(new)
+                }
+            }
+        }
+        saveContext()
+        return results
+    }
+}
+
 extension NSManagedObject {
     
     class func createNew<T>(context: NSManagedObjectContext!) -> T? {
@@ -55,146 +202,4 @@ extension Date {
         }
     }
     
-}
-
-class DataManager: NSObject {
-    
-    static let sharedInstance = DataManager()
-
-    lazy var viewContext: NSManagedObjectContext = {
-        return self.persistentContainer.viewContext
-    }()
-
-    func allEvents() -> [Event]? {
-        let bundle = Bundle(for: type(of: self))
-        if let fileURL = bundle.url(forResource: "eventsList", withExtension: "json") {
-            do {
-                let data = try Data(contentsOf: fileURL)
-                if let parsedData = try? JSONSerialization.jsonObject(with: data) as! [String: AnyObject],
-                    
-                    let lastUpdateDateString = parsedData["lastUpdate"] as? String,
-                    let events = parsedData["events"] as? [[String: AnyObject]] {
-                    
-                    if let lastUpdateDate = Date.dateFormatterWithTime().date(from: lastUpdateDateString),
-                        Date().compare(lastUpdateDate) == ComparisonResult.orderedDescending {
-                       
-                        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Event")
-                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                        
-                        do {
-                            try viewContext.persistentStoreCoordinator?.execute(deleteRequest, with: viewContext)
-                            return saveNewEvents(from: events)
-                        } catch let error as NSError {
-                            print(error)
-                            return nil
-                        }
-                    }
-                }
-            } catch {
-                print(error)
-                return nil
-            }
-        }
-        return nil
-    }
-    
-    static func fetchedResultsControllerWithPredicate<T: NSManagedObject>(predicate: NSPredicate? = nil, sortDescriptors: Array<NSSortDescriptor> = [], cacheName: String? = nil, groupKey: String? = nil, context: NSManagedObjectContext?) -> NSFetchedResultsController<T>? {
-        
-        guard let context = context else {
-            print("Failed to fetch - No Context specified!")
-            return nil
-        }
-        
-        let fetchRequest = NSFetchRequest<T>(entityName: String(describing: self))
-        
-        if predicate != nil {
-            fetchRequest.predicate = predicate
-        }
-        
-        fetchRequest.sortDescriptors = sortDescriptors
-        fetchRequest.fetchBatchSize = 20;
-        
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: groupKey, cacheName: cacheName)
-        return fetchedResultsController
-    }
-    
-
-    // MARK: - Core Data stack
-    
-    lazy var persistentContainer: NSPersistentContainer = {
-        /*
-         The persistent container for the application. This implementation
-         creates and returns a container, having loaded the store for the
-         application to it. This property is optional since there are legitimate
-         error conditions that could cause the creation of the store to fail.
-         */
-        let container = NSPersistentContainer(name: "bgfestivals")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                
-                /*
-                 Typical reasons for an error here include:
-                 * The parent directory does not exist, cannot be created, or disallows writing.
-                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                 * The device is out of space.
-                 * The store could not be migrated to the current model version.
-                 Check the error message to determine what the actual problem was.
-                 */
-                fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
-        })
-
-        return container
-    }()
-
-    
-    // MARK: - Core Data Saving support
-    
-    func saveContext() {
-        let context = persistentContainer.viewContext
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-            }
-        }
-    }
-    
-    // MARK: Private
-    
-    fileprivate func saveNewEvents(from list: [[String: AnyObject]]) -> [Event] {
-        var results: [Event] = []
-
-        for eventInfo in list {
-            if let new: Event = Event.createNew(context: viewContext) {
-                if let eventID = eventInfo["id"] as? NSNumber,
-                    let title = eventInfo["title"] as? NSString,
-                    let startDate = eventInfo["startDate"] as? NSString {
-                    new.id = Int64(eventID)
-                    new.title = title as String
-                    new.startDate = Date().toDate(string: startDate as String) as NSDate?
-                    new.endDate = Date().toDate(string: eventInfo["endDate"] as! String) as NSDate?
-                    new.eventDescription = eventInfo["eventDescription"] as? String
-                    new.rating = (eventInfo["rating"] as? Double)!
-                    new.location = eventInfo["location"] as? String
-                    new.contactEmail = eventInfo["contactEmail"] as? String
-                    new.imageURL = eventInfo["imageURL"] as? String
-                    if let isSelectedValue = eventInfo["isSelected"] as? Bool {
-                        new.isSelected = isSelectedValue
-                    } else {
-                        new.isSelected = false
-                    }
-                    results.append(new)
-                }
-            }
-            saveContext()
-        }
-        return results
-    }
 }
