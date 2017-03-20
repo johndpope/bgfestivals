@@ -18,6 +18,7 @@
 		892556711E75EB1E00CF54DF /* ListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892556701E75EB1E00CF54DF /* ListViewController.swift */; };
 		892556751E75F7F500CF54DF /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892556741E75F7F500CF54DF /* DataManager.swift */; };
 		892556771E7B05D300CF54DF /* UIImageExtentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892556761E7B05D300CF54DF /* UIImageExtentions.swift */; };
+		892556791E7DEAC100CF54DF /* HomeScreenQuickActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892556781E7DEAC100CF54DF /* HomeScreenQuickActions.swift */; };
 		F68FF4331E795C26006AD2E5 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68FF4321E795C26006AD2E5 /* ColorExtensions.swift */; };
 		F6AD214B1E784B1300C29E27 /* EventTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6AD214A1E784B1300C29E27 /* EventTableViewCell.swift */; };
 		F6B15E071E7AD03100B093F8 /* eventsList.json in Resources */ = {isa = PBXBuildFile; fileRef = F6B15E061E7AD03100B093F8 /* eventsList.json */; };
@@ -62,6 +63,7 @@
 		892556701E75EB1E00CF54DF /* ListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListViewController.swift; sourceTree = "<group>"; };
 		892556741E75F7F500CF54DF /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		892556761E7B05D300CF54DF /* UIImageExtentions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImageExtentions.swift; sourceTree = "<group>"; };
+		892556781E7DEAC100CF54DF /* HomeScreenQuickActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeScreenQuickActions.swift; sourceTree = "<group>"; };
 		F68FF4321E795C26006AD2E5 /* ColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
 		F6AD214A1E784B1300C29E27 /* EventTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventTableViewCell.swift; sourceTree = "<group>"; };
 		F6B15E061E7AD03100B093F8 /* eventsList.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = eventsList.json; sourceTree = "<group>"; };
@@ -120,6 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				8925563A1E75E0BB00CF54DF /* AppDelegate.swift */,
+				892556781E7DEAC100CF54DF /* HomeScreenQuickActions.swift */,
 				8925566C1E75E0EC00CF54DF /* Database */,
 				8925566B1E75E0DE00CF54DF /* Controllers */,
 				8925566D1E75E11700CF54DF /* Views */,
@@ -330,6 +333,7 @@
 			files = (
 				F68FF4331E795C26006AD2E5 /* ColorExtensions.swift in Sources */,
 				892556431E75E0BB00CF54DF /* bgfestivals.xcdatamodeld in Sources */,
+				892556791E7DEAC100CF54DF /* HomeScreenQuickActions.swift in Sources */,
 				F6D599AA1E76AECB0019BF48 /* ViewExtensions.swift in Sources */,
 				F6D599B01E76BB8C0019BF48 /* RightTextFieldTableViewCell.swift in Sources */,
 				892556751E75F7F500CF54DF /* DataManager.swift in Sources */,

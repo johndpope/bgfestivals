@@ -16,6 +16,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
+        var performAdditionalHandler = true
+    
+        if let shortcutItem = launchOptions?[UIApplicationLaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
+            // TODO:
+            performAdditionalHandler = false
+        }
+        
         UINavigationBar.appearance().tintColor = UIColor.mainApp()
         UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName : UIColor.darkGray]
         
@@ -29,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let h = UIApplicationShortcutItem(type: "com.bgfestivals.event", localizedTitle: "Event 1", localizedSubtitle:"Location", icon: .none, userInfo: ["event_id" : "7"])
 
         application.shortcutItems = [a, b, c, d, e, f, g, h]
-        return true
+        return performAdditionalHandler
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -53,13 +60,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
-        if (shortcutItem.type == "com.bgfestivals.event") {
+        var didHandel = false
+        
+        if (shortcutItem.type == staticActionTypeKey) {
             //TODO:
+            didHandel = true
         }
         
-        if (shortcutItem.type == "com.bgfestivals.createevent") {
+        if (shortcutItem.type == dynamicActionTypeKey) {
             //TODO:
+            didHandel = true
         }
+        completionHandler(didHandel)
     }
 }
 

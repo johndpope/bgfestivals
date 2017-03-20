@@ -21,14 +21,21 @@ extension NSManagedObject {
 
 extension Date {
     
-    func toString() -> String {
+    static func dateFormatterWithTime() -> DateFormatter {
         let dateFormatterWithTime = DateFormatter()
         dateFormatterWithTime.dateFormat = "MM/dd/yyyy H:mm:ss"
-        
+        return dateFormatterWithTime
+    }
+    
+    static func dateFormatter() -> DateFormatter {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MM/dd/yyyy"
-        let dateWithTimeString = dateFormatterWithTime.string(from: self)
-        let dateString = dateFormatter.string(from: self)
+        return dateFormatter
+    }
+    
+    func toString() -> String {
+        let dateWithTimeString = Date.dateFormatterWithTime().string(from: self)
+        let dateString = Date.dateFormatter().string(from: self)
         if dateWithTimeString.characters.count > 0 {
             return dateWithTimeString
         } else if dateString.characters.count > 0 {
@@ -39,15 +46,9 @@ extension Date {
     }
     
     func toDate(string: String) -> Date {
-        let dateFormatterWithTime = DateFormatter()
-        dateFormatterWithTime.dateFormat = "MM/dd/yyyy H:mm:ss"
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MM/dd/yyyy"
-    
-        if let dateWithTime = dateFormatterWithTime.date(from: string) {
+        if let dateWithTime = Date.dateFormatterWithTime().date(from: string) {
             return dateWithTime
-        } else if let dateString = dateFormatter.date(from: string) {
+        } else if let dateString = Date.dateFormatter().date(from: string) {
             return dateString
         } else {
             return Date()
@@ -63,45 +64,30 @@ class DataManager: NSObject {
     lazy var viewContext: NSManagedObjectContext = {
         return self.persistentContainer.viewContext
     }()
-    
-    let dateFormatter: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MM/dd/yyyy H:mm:ss"
-        return dateFormatter
-    }()
-    
+
     func allEvents() -> [Event]? {
-        var results: [Event] = []
         let bundle = Bundle(for: type(of: self))
         if let fileURL = bundle.url(forResource: "eventsList", withExtension: "json") {
             do {
                 let data = try Data(contentsOf: fileURL)
                 if let parsedData = try? JSONSerialization.jsonObject(with: data) as! [String: AnyObject],
+                    
                     let lastUpdateDateString = parsedData["lastUpdate"] as? String,
                     let events = parsedData["events"] as? [[String: AnyObject]] {
                     
-                    if let lastUpdateDate = dateFormatter.date(from: lastUpdateDateString),
+                    if let lastUpdateDate = Date.dateFormatterWithTime().date(from: lastUpdateDateString),
                         Date().compare(lastUpdateDate) == ComparisonResult.orderedDescending {
-                        for eventInfo in events {
-                            //TODO: Update if exist
-                            if let new: Event = Event.createNew(context: viewContext) {
-                                if let eventID = eventInfo["id"] as? NSNumber,
-                                    let title = eventInfo["title"] as? NSString,
-                                    let startDate = eventInfo["startDate"] as? NSString {
-                                    new.id = Int64(eventID)
-                                    new.title = title as String
-                                    new.startDate = Date().toDate(string: startDate as String) as NSDate?
-                                    new.endDate = Date().toDate(string: eventInfo["endDate"] as! String) as NSDate?
-                                    new.eventDescription = eventInfo["eventDescription"] as? String
-                                    new.rating = (eventInfo["rating"] as? Double)!
-                                    new.location = eventInfo["location"] as? String
-                                    new.contactEmail = eventInfo["contactEmail"] as? String
-                                    new.imageURL = eventInfo["imageURL"] as? String
-                                    results.append(new)
-                                }
-                            }
+                       
+                        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Event")
+                        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                        
+                        do {
+                            try viewContext.persistentStoreCoordinator?.execute(deleteRequest, with: viewContext)
+                            return saveNewEvents(from: events)
+                        } catch let error as NSError {
+                            print(error)
+                            return nil
                         }
-                        saveContext()
                     }
                 }
             } catch {
@@ -109,8 +95,29 @@ class DataManager: NSObject {
                 return nil
             }
         }
-        return results
+        return nil
     }
+    
+    static func fetchedResultsControllerWithPredicate<T: NSManagedObject>(predicate: NSPredicate? = nil, sortDescriptors: Array<NSSortDescriptor> = [], cacheName: String? = nil, groupKey: String? = nil, context: NSManagedObjectContext?) -> NSFetchedResultsController<T>? {
+        
+        guard let context = context else {
+            print("Failed to fetch - No Context specified!")
+            return nil
+        }
+        
+        let fetchRequest = NSFetchRequest<T>(entityName: String(describing: self))
+        
+        if predicate != nil {
+            fetchRequest.predicate = predicate
+        }
+        
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.fetchBatchSize = 20;
+        
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: groupKey, cacheName: cacheName)
+        return fetchedResultsController
+    }
+    
 
     // MARK: - Core Data stack
     
@@ -145,7 +152,7 @@ class DataManager: NSObject {
     
     // MARK: - Core Data Saving support
     
-    func saveContext () {
+    func saveContext() {
         let context = persistentContainer.viewContext
         if context.hasChanges {
             do {
@@ -157,5 +164,37 @@ class DataManager: NSObject {
                 fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
+    }
+    
+    // MARK: Private
+    
+    fileprivate func saveNewEvents(from list: [[String: AnyObject]]) -> [Event] {
+        var results: [Event] = []
+
+        for eventInfo in list {
+            if let new: Event = Event.createNew(context: viewContext) {
+                if let eventID = eventInfo["id"] as? NSNumber,
+                    let title = eventInfo["title"] as? NSString,
+                    let startDate = eventInfo["startDate"] as? NSString {
+                    new.id = Int64(eventID)
+                    new.title = title as String
+                    new.startDate = Date().toDate(string: startDate as String) as NSDate?
+                    new.endDate = Date().toDate(string: eventInfo["endDate"] as! String) as NSDate?
+                    new.eventDescription = eventInfo["eventDescription"] as? String
+                    new.rating = (eventInfo["rating"] as? Double)!
+                    new.location = eventInfo["location"] as? String
+                    new.contactEmail = eventInfo["contactEmail"] as? String
+                    new.imageURL = eventInfo["imageURL"] as? String
+                    if let isSelectedValue = eventInfo["isSelected"] as? Bool {
+                        new.isSelected = isSelectedValue
+                    } else {
+                        new.isSelected = false
+                    }
+                    results.append(new)
+                }
+            }
+            saveContext()
+        }
+        return results
     }
 }

@@ -26,7 +26,11 @@ class EventTableViewCell: UITableViewCell {
         if let imageURLString = event.imageURL {
             eventImageView.downloadedFrom(link: imageURLString)
         }
-        accessoryType = UITableViewCellAccessoryType.disclosureIndicator
+        if event.isSelected {
+            accessoryType = UITableViewCellAccessoryType.checkmark
+        } else {
+            accessoryType = UITableViewCellAccessoryType.disclosureIndicator
+        }
     }
 
 }

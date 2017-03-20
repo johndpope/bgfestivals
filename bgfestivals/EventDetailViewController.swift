@@ -8,6 +8,8 @@
 
 import UIKit
 
+typealias ActionBlock = (_ action: UIPreviewAction, _ controller: UIViewController) -> Void
+
 let minHeaderViewHeight: CGFloat = 170
 let maxHeaderViewHeight: CGFloat = 340
 let defaultCellHeight: CGFloat = 216
@@ -16,6 +18,7 @@ let mainAppColor: UIColor = .red
 enum EventDetailSection: Int {
     case startDate
     case endDate
+//    case raiting
 //    case contact
     case eventDescription
 }
@@ -31,6 +34,60 @@ class EventDetailViewController: UIViewController {
     @IBOutlet weak var footerToolBar: UIToolbar!
     @IBOutlet weak var footerButton: UIBarButtonItem!
     
+    @available(iOS 9.0, *)
+    override var previewActionItems: [UIPreviewActionItem] {
+        var items: [UIPreviewActionItem] = []
+
+        // Conditional
+        if let currentEvent = currentEvent, currentEvent.isSelected {
+            let isSelected = UIPreviewAction(title: "Going", style: .selected) { (action, viewController) in
+
+            }
+            
+            items.append(isSelected)
+
+            let handler: ActionBlock = { (action, viewController) in
+                (viewController as! EventDetailViewController).putRatingToEvent(rating: 0)
+            }
+            
+            let replayActions = [UIPreviewAction(title: "1", style: .default, handler: handler),
+                                 UIPreviewAction(title: "2", style: .default, handler: handler),
+                                 UIPreviewAction(title: "3", style: .default, handler: handler),
+                                 UIPreviewAction(title: "4", style: .default, handler: handler),
+                                 UIPreviewAction(title: "5", style: .default, handler: handler)]
+            let rate = UIPreviewActionGroup(title: "Rate", style: .default, actions: replayActions)
+            
+            items.append(rate)
+            
+            let share = UIPreviewAction(title: "Share", style: .default) { (action, viewController) in
+                (viewController as! EventDetailViewController).shareEvent()
+            }
+            items.append(share)
+
+        } else {
+        
+            let addEventToGoingList = UIPreviewAction(title: "Add to going list", style: .default) { (action, viewController) in
+                (viewController as! EventDetailViewController).addEventToGoingList()
+            }
+            items.append(addEventToGoingList)
+        }
+        
+        let delete = UIPreviewAction(title: "Delete", style: .destructive) { (action, viewController) in
+            (viewController as! EventDetailViewController).deleteEvent()
+        }
+        items.append(delete)
+        
+        return items
+    }
+    
+    var isPreviewed: Bool? {
+        didSet {
+            if let footerToolBar = footerToolBar {
+                footerToolBar.isHidden = isPreviewed!
+            }
+        }
+    }
+    
     var currentEvent: Event?
     var editMode: Bool?
 
@@ -39,21 +96,54 @@ class EventDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if editMode == true {
-            footerButton.title = "Create"
-            footerButton.tintColor = .mainApp()
-        } else {
-            footerButton.title = "Delete"
-            footerButton.tintColor = .red
-        }
+        configureScreenMode()
         configureTableView()
     }
-
-    func configureTableView() {
+    
+    // MARK: Actions
+    
+    @IBAction func footerButtonPressed(_ sender: Any) {
+        if editMode == true {
+            createEvent()
+        } else {
+            deleteEvent()
+        }
+    }
+    
+    @IBAction func shareButtonPressed(_ sender: Any) {
+        shareEvent()
+    }
+    
+    // MARK: Private actions
+    
+    fileprivate func deleteEvent() {
+        print("Delete event \(currentEvent?.title)")
+    }
+    
+    fileprivate func createEvent() {
+        print("Create event \(currentEvent?.title)")
+    }
+    
+    fileprivate func shareEvent() {
+        print("Share event \(currentEvent?.title)")
+    }
+    
+    fileprivate func addEventToGoingList() {
+        print("Add \(currentEvent?.title) to going list")
+    }
+    
+    fileprivate func putRatingToEvent(rating: Double) {
+        print("Rate \(currentEvent?.title)")
+    }
+    
+    // MARK: Private methods
+    
+    fileprivate func configureTableView() {
+        
         tableView.estimatedRowHeight = defaultCellHeight
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.tableHeaderView = headerView
-        
+
         guard let event = currentEvent else {
             return;
         }
@@ -64,44 +154,18 @@ class EventDetailViewController: UIViewController {
         }
     }
     
-    // MARK: Actions
-    
-    @IBAction func footerButtonPressed(_ sender: Any) {
-        
-    }
-    
-    @IBAction func shareButtonPressed(_ sender: Any) {
-    
-    }
-    
-    override var previewActionItems: [UIPreviewActionItem] {
-        let share = UIPreviewAction(title: "Share", style: .default) { (action, viewController) in
-            (viewController as! EventDetailViewController).shareEvent()
+    fileprivate func configureScreenMode() {
+        if let isPreviewed = isPreviewed {
+            footerToolBar.isHidden = isPreviewed
         }
-        return [share]
-    }
         
-    
-    // MARK: Private actions
-    
-    func deleteEvent() {
-        
-    }
-    
-    func saveEvent() {
-        
-    }
-    
-    func shareEvent() {
-        
-    }
-    
-    func addEventToGoingList() {
-        
-    }
-    
-    func putRatingToEvent(rating: Double) {
-        
+        if editMode == true {
+            footerButton.title = "Create"
+            footerButton.tintColor = .mainApp()
+        } else {
+            footerButton.title = "Delete"
+            footerButton.tintColor = .red
+        }
     }
     
 }
@@ -157,7 +221,6 @@ extension EventDetailViewController: UITableViewDelegate, UITableViewDataSource 
             } else {
                 cell.placeholderText = "Add description for your event here"
             }
-            cell.textView.delegate = self
             return cell
         }
     }
@@ -171,6 +234,7 @@ extension EventDetailViewController: UITableViewDelegate, UITableViewDataSource 
         if ((indexPath.section == EventDetailSection.startDate.rawValue || indexPath.section == EventDetailSection.endDate.rawValue) && editMode!) {
             
             datePickerIndexPath = IndexPath(row: 1, section: indexPath.section)
+            
             tableView.beginUpdates()
             
             if let oldIndexPath = indexPathCopy {
@@ -218,18 +282,6 @@ extension EventDetailViewController: UIToolbarDelegate {
     }
 }
 
-extension EventDetailViewController: UITextViewDelegate {
-    
-    func textViewDidChange(_ textView: UITextView) {
-        let currentOffset = tableView.contentOffset
-        UIView.setAnimationsEnabled(false)
-        tableView.beginUpdates()
-        tableView.endUpdates()
-        UIView.setAnimationsEnabled(true)
-        tableView.setContentOffset(currentOffset, animated: false)
-    }
-}
-
 extension EventDetailViewController: DatePickerTableViewCellDelegate {
     
     func datePickerDidChangeValue(datePicker: UIDatePicker, cell: DatePickerTableViewCell) {
@@ -239,5 +291,23 @@ extension EventDetailViewController: DatePickerTableViewCellDelegate {
                 labelCell.textField.text = String(describing: datePicker.date)
             }
         }
+    }
+}
+
+extension EventDetailViewController {
+
+    class func detailViewController(event: Event?) -> EventDetailViewController? {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+
+        if let eventDetailViewController = storyboard.instantiateViewController(withIdentifier: String(describing: EventDetailViewController.self)) as? EventDetailViewController {
+            if let event = event {
+                eventDetailViewController.editMode = false
+                eventDetailViewController.currentEvent = event
+            } else {
+                eventDetailViewController.editMode = true
+            }
+            return eventDetailViewController
+        }
+        return nil
     }
 }

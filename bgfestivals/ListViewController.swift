@@ -13,14 +13,14 @@ let showEventSegueIdentifier = "ShowEventSegueIdentifier"
 enum ListFilterType: Int {
     case all
     case going
-    case mine
+//    case mine
     
     func title() -> String {
         switch self {
         case .going:
             return "Going"
-        case .mine:
-            return "Mine Events"
+//        case .mine:
+//            return "Mine Events"
         default:
             return "All Events"
         }
@@ -34,39 +34,26 @@ class ListViewController: UIViewController {
     @IBOutlet weak var headerView: UIView!
     
     fileprivate var allEvents: [Event]? {
+        
+//        let sortDescriptors: [NSSortDescriptor] = [NSSortDescriptor(key: "startDate", ascending: true)]
+//        fetchedResultsController = Event.fetchedResultsControllerWithPredicate(predicate: nil, sortDescriptors: sortDescriptors, cacheName: "event", groupKey: "isSelected", context: self.operationsManager?.mainContext)
+        
         return DataManager.sharedInstance.allEvents()?.sorted{
-                ($0.startDate as! Date).compare(($1.startDate as! Date)) == ComparisonResult.orderedAscending
+            ($0.startDate as! Date).compare(($1.startDate as! Date)) == ComparisonResult.orderedAscending
         }
     }
-    fileprivate var selectedIndexPath: IndexPath?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         configureNavigation()
         configureTableView()
-        //todo
+        
         registerForPreviewing(with: self, sourceView: tableView)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == showEventSegueIdentifier {
-            if let destinationController = segue.destination as? EventDetailViewController {
-                if sender is UIBarButtonItem {
-                    destinationController.editMode = true
-                } else {
-                    destinationController.editMode = false
-                    if let allEvents = allEvents, let selectedIndex = selectedIndexPath?.row {
-                        let event = allEvents[selectedIndex]
-                        destinationController.currentEvent = event
-                    }
-                }
-            }
-        }
     }
     
     // MARK: Actions
@@ -78,83 +65,91 @@ class ListViewController: UIViewController {
     }
     
     @IBAction func addEventButtonPressed(_ sender: Any) {
-        performSegue(withIdentifier: showEventSegueIdentifier, sender: sender)
+        if let eventDetailViewController = EventDetailViewController.detailViewController(event: nil) {
+            show(eventDetailViewController, sender: nil)
+        }
     }
     
     // MARK: Private
     
-    func configureNavigation() {
+    fileprivate func configureNavigation() {
         segmentControl.tintColor = UIColor.mainApp()
         navigationController!.navigationBar.isTranslucent = false
         navigationController!.navigationBar.shadowImage = #imageLiteral(resourceName: "TransparentPixel")
         navigationController!.navigationBar.setBackgroundImage(#imageLiteral(resourceName: "Pixel"), for: .default)
     }
     
-    func configureTableView() {
+    fileprivate func configureTableView() {
         tableView.estimatedRowHeight = 110
         tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.tintColor = UIColor.mainApp()
     }
+    
 }
 
 extension ListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        guard let type = ListFilterType(rawValue: segmentControl.selectedSegmentIndex) else {
+        guard let type = ListFilterType(rawValue: segmentControl.selectedSegmentIndex), let allEvents = allEvents else {
             return 0
         }
         
-        switch type {
-        case .going:
+        if (type == .going) {
             return 5
-        case .mine:
-            return 2
-        default:
-            if let allEvents = allEvents {
-                return allEvents.count
-            }
-        
+        } else {
+            return allEvents.count
         }
-        return 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: EventTableViewCell.self)) as! EventTableViewCell
-        let event = allEvents?[indexPath.row]
-        cell.configure(with: event)
-    
-        cell.accessoryType = UITableViewCellAccessoryType.disclosureIndicator
+        if let allEvents = allEvents {
+            let event = allEvents[indexPath.row]
+            cell.configure(with: event)
+        }
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        selectedIndexPath = indexPath
-        performSegue(withIdentifier: showEventSegueIdentifier, sender: nil)
+
+        if let allEvents = allEvents {
+            let event = allEvents[indexPath.row]
+            if let eventDetailViewController = EventDetailViewController.detailViewController(event: event) {
+                show(eventDetailViewController, sender: nil)
+            }
+        }
     }
+    
 }
 
 extension ListViewController: UIViewControllerPreviewingDelegate {
     
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
-        performSegue(withIdentifier: showEventSegueIdentifier, sender: nil)
+        
+        (viewControllerToCommit as! EventDetailViewController).isPreviewed = false
+        show(viewControllerToCommit, sender: nil)
+    
     }
     
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
-        guard let indexPath = tableView.indexPathForRow(at: location) else {
+       
+        guard let indexPath = tableView.indexPathForRow(at: location), let allEvents = allEvents  else {
             return nil
         }
-        let eventDetail = storyboard?.instantiateViewController(withIdentifier: "EventDetailViewController") as! EventDetailViewController
-        if let allEvents = allEvents {
-            let event = allEvents[indexPath.row]
-            eventDetail.currentEvent = event
+
+        let event = allEvents[indexPath.row]
+        if let eventDetailViewController = EventDetailViewController.detailViewController(event: event) {
+            let cellRect = tableView.rectForRow(at: indexPath)
+            let sourceRect = previewingContext.sourceView.convert(cellRect, from: tableView)
+            previewingContext.sourceRect = sourceRect
+            eventDetailViewController.isPreviewed = true
+            
+            return eventDetailViewController
         }
-        selectedIndexPath = indexPath
-        let cellRect = tableView.rectForRow(at: indexPath)
-        let sourceRect = previewingContext.sourceView.convert(cellRect, from: tableView)
-        previewingContext.sourceRect = sourceRect
-        
-        return eventDetail
+
+        return nil
     }
     
     

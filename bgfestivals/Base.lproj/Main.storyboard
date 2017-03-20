@@ -50,7 +50,7 @@
                                         <rect key="frame" x="0.0" y="1" width="375" height="110"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="kPA-0S-8CM" id="FSt-nY-v6T">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="109"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="109.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" text="Event Title Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KxG-va-NRN">
@@ -118,7 +118,6 @@
                                         <segments>
                                             <segment title="All"/>
                                             <segment title="Going"/>
-                                            <segment title="Mine"/>
                                         </segments>
                                         <connections>
                                             <action selector="filterSegmentValueChanged:" destination="vG9-uE-YIR" eventType="valueChanged" id="D8B-v2-DPe"/>

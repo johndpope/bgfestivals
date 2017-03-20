@@ -8,9 +8,10 @@
                "startDate": "03/25/2017 8:00:00",
                "endDate": "03/25/2017 20:00:00",
                "eventDescription": "VI Folk Festival 'Spring Dance'. Photo exhibition 'Spring dance over the years'",
-               "rating": 7.6,
+               "rating": 1.6,
                "location": "Velingrad",
                "contactEmail": "obshtina@velingrad.bg",
+               "isSelected": true,
                },
                {
                "id": 1,
@@ -22,6 +23,7 @@
                "rating": 3.6,
                "location": "Pavlikeni",
                "contactEmail": "otdel_hdsu@abv.bg",
+               "isSelected": false,
                },
                {
                "id": 2,
@@ -30,9 +32,10 @@
                "startDate": "03/26/2017 8:00:00",
                "endDate": "03/26/2017 20:00:00",
                "eventDescription": "IV Festival of Bulgarian people andDances 'Haidushka sofra'",
-               "rating": 6.3,
+               "rating": 4.3,
                "location": "Haskovo",
                "contactEmail": "culture1_haskovo@abv.bg",
+               "isSelected": true,
                },
                {
                "id": 3,
@@ -41,9 +44,10 @@
                "startDate": "04/01/2017",
                "endDate": "04/01/2017",
                "eventDescription": "",
-               "rating": 8.1,
+               "rating": 3.1,
                "location": "Tryavna",
                "contactEmail": "",
+               "isSelected": true,
                },
                {
                "id": 4,
@@ -52,9 +56,10 @@
                "startDate": "04/07/2017",
                "endDate": "04/07/2017",
                "eventDescription": "",
-               "rating": 5.5,
+               "rating": 4.5,
                "location": "Harmanli",
                "contactEmail": "obshtina@harmanli.bg",
+               "isSelected": false,
                },
                {
                "id": 5,
@@ -63,9 +68,10 @@
                "startDate": "04/17/2017",
                "endDate": "04/17/2017",
                "eventDescription": "Annual festival and bazaar folk customs and traditions",
-               "rating": 7.3,
+               "rating": 1.3,
                "location": "Yablanitsa",
                "contactEmail": "diana_vasileva@mail.bg",
+               "isSelected": false,
                },
                {
                "id": 6,
@@ -74,9 +80,10 @@
                "startDate": "04/24/2017",
                "endDate": "04/24/2017",
                "eventDescription": "XVIII International Folkloreholiday 'From Palm Sunday to St. George'",
-               "rating": 6.7,
+               "rating": 1.7,
                "location": "General Inzovo",
                "contactEmail": "",
+               "isSelected": false,
                },
                {
                "id": 7,
@@ -85,9 +92,10 @@
                "startDate": "04/08/2017",
                "endDate": "04/08/2017",
                "eventDescription": "City Folk Fest 'Palm Sunday'",
-               "rating": 8.1,
+               "rating": 0,
                "location": "General Toshevo",
                "contactEmail": "kultura@toshevo.org",
+               "isSelected": true,
                },
                {
                "id": 8,
@@ -99,6 +107,7 @@
                "rating": 0,
                "location": "Kostinbrod",
                "contactEmail": "",
+               "isSelected": true,
                },
                {
                "id": 9,
@@ -107,9 +116,10 @@
                "startDate": "04/15/2017",
                "endDate": "04/17/2017",
                "eventDescription": "Folk festival 'Seslavska spring'",
-               "rating": 7.1,
+               "rating": 0,
                "location": "Sofia",
                "contactEmail": "stan4o_seslavci@abv.bg",
+               "isSelected": false,
                },
                {
                "id": 10,
@@ -118,9 +128,10 @@
                "startDate": "04/28/2017",
                "endDate": "05/01/2017",
                "eventDescription": "XII International Folklore Festival 'Spring Vratsa'",
-               "rating": 8.6,
+               "rating": 2.6,
                "location": "Sofia",
                "contactEmail": "krumuva@vratsa.bg",
+               "isSelected": false,
                },
                {
                "id": 11,
@@ -132,6 +143,7 @@
                "rating": 3.12,
                "location": "Koinare",
                "contactEmail": "svetlamakaveeva@abv.bg",
+               "isSelected": false,
                },
                {
                "id": 12,
@@ -143,6 +155,7 @@
                "rating": 4.6,
                "location": "Novi pazar",
                "contactEmail": "",
+               "isSelected": false,
                },
                {
                "id": 13,
@@ -151,9 +164,10 @@
                "startDate": "06/02/2017",
                "endDate": "06/02/2017",
                "eventDescription": "International Folklore Festival 'Nessebar ornament'",
-               "rating": 6.4,
+               "rating": 1.4,
                "location": "Nessebar",
                "contactEmail": "chitaliste_ns@abv.bg",
+               "isSelected": false,
                },
                {
                "id": 14,
@@ -162,9 +176,10 @@
                "startDate": "06/05/2017",
                "endDate": "06/11/2017",
                "eventDescription": " Natsionalen festival 'Shopski praznik 2017'",
-               "rating": 10,
+               "rating": 5,
                "location": "Elin Pelin",
                "contactEmail": "tsvetanova.eli@gmail.com",
+               "isSelected": false,
                }
                ]
 }
